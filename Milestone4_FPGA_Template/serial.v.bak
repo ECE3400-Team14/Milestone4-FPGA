@@ -1,0 +1,65 @@
+module SERIAL(
+	CLK,
+	RESULT,
+	colorFinished,
+	shapeFinished,
+	shape,
+	SIG,
+	DATA
+);
+
+input CLK;
+
+input [7:0] RESULT;//result from image processor
+
+input colorFinished;
+
+input [1:0] shape;
+
+input shapeFinished;
+
+input SIG;//signal line from Arduino
+
+output wire DATA;//data line to Arduino
+
+reg [3:0] SHAPE_DATA;//storing all relevant shape data
+
+reg [1:0] write;//select which bit to send on DATA line
+
+
+always @ (posedge clk) begin
+	//set color
+	if(colorFinished) begin
+		SHAPE_DATA[1:0] <= RESULT[1:0];
+	end
+	else begin
+		SHAPE_DATA[1:0] <= SHAPE_DATA[1:0];
+	end
+	
+	//set shape
+	if(shapeFinished) begin
+		SHAPE_DATA[3:2] <= shape;
+	end
+	else begin
+		SHAPE_DATA[3:2] <= SHAPE_DATA[3:2];
+	end
+	
+end
+
+always @ (negedge SIG) begin
+	if(write == 3) begin
+		write <= 0;
+	end
+	else begin
+		write <= write + 1;
+	end
+
+end
+
+always @ (*) begin
+	DATA <= SHAPE_DATA[write];
+end
+
+
+
+
